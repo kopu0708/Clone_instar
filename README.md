@@ -564,5 +564,72 @@ hintStyle: TextStyle(color: Colors.green),
 이런 파라미터를 더해주면 됩니다.
 
 ---------
-## ThemeData로 스타일 분리
-위젯 하나하나 스타일 넣으면 코드가 읽기 힘들어진다. 그래서 ThemeData()를 사용 하면 모든 위젯의 스타일을 한번에 넣을 수 있다.
+🤔 ThemeData를 사용하는 이유
+앱을 개발할 때 위젯마다 스타일을 개별적으로 적용하면 코드가 길어지고 지저분해집니다. **ThemeData**를 사용하면 앱 전체의 스타일(색상, 폰트 등)을 한 곳에서 중앙 관리할 수 있어, 코드의 가독성과 유지보수성이 크게 향상됩니다.
+
+🎨 ThemeData 기본 사용법 및 예시
+ThemeData는 MaterialApp 위젯의 theme 속성에 지정하여 앱 전체에 적용합니다.
+~~~
+Dart
+
+MaterialApp(
+  theme: ThemeData(
+    // 아이콘 전체에 적용될 스타일
+    iconTheme: IconThemeData(color: Colors.red, size: 40),
+    
+    // AppBar 전체에 적용될 스타일
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.grey,
+      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+    ),
+  ),
+  home: MyApp(),
+)
+~~~
+⚠️ 스타일 적용 우선순위와 주의사항
+1. 스타일이 중복될 경우
+ThemeData로 설정한 전역 스타일과 위젯에 직접 지정한 로컬 스타일이 충돌하면, 위젯에 더 가까운 로컬 스타일이 우선적으로 적용됩니다.
+
+2. 복잡한 위젯의 스타일 적용
+AppBar나 Dialog처럼 여러 요소로 구성된 위젯은, 해당 위젯 전용 테마 속성 안에서 스타일을 지정해야 제대로 적용됩니다.
+
+예시: AppBar 안의 아이콘 색상을 바꾸려면, ThemeData의 iconTheme이 아닌 appBarTheme 내부의 iconTheme 속성을 사용해야 합니다.
+~~~
+Dart
+
+ThemeData(
+  appBarTheme: AppBarTheme(
+    // AppBar 내부의 아이콘에만 적용될 스타일
+    iconTheme: IconThemeData(color: Colors.white), 
+  ),
+)
+~~~
+이러한 전용 테마는 dialogTheme, snackBarTheme 등 다양하게 존재합니다.
+
+✍️ textTheme으로 텍스트 스타일 관리하기
+textTheme을 사용하면 앱의 텍스트 스타일을 용도별로 미리 정의할 수 있습니다. Flutter의 각 위젯은 기본적으로 정해진 텍스트 스타일을 사용합니다.
+
+Text 위젯: bodyMedium 스타일을 기본으로 사용
+
+AppBar 제목: titleLarge 스타일을 기본으로 사용
+~~~
+Dart
+
+ThemeData(
+  textTheme: TextTheme(
+    // Text 위젯의 기본 스타일을 파란색으로 지정
+    bodyMedium: TextStyle(color: Colors.blue),
+  ),
+)
+~~~
+💡 실용적인 팁: TextStyle 변수 활용
+textTheme 설정이 복잡하게 느껴진다면, 자주 사용하는 TextStyle을 변수로 만들어 재사용하는 것이 더 편리할 수 있습니다.
+~~~
+Dart
+
+// 스타일을 변수로 미리 정의
+var myTextStyle = TextStyle(color: Colors.red, fontWeight: FontWeight.bold);
+
+// 필요할 때마다 변수를 가져와서 적용
+Text('원하는 글자', style: myTextStyle);
+~~~
