@@ -1,0 +1,6 @@
+# Flutter 플랫폼별 자동 생성 코드를 언어 통계에서 제외
+android/** linguist-vendored
+ios/** linguist-vendored
+windows/** linguist-vendored
+linux/** linguist-vendored
+macos/** linguist-vendored
