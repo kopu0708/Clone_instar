@@ -3,6 +3,8 @@ import 'style.dart' as style;
 import 'package:http/http.dart'as http;
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:flutter/rendering.dart';
+
 
 void main() {
   runApp(
@@ -25,19 +27,31 @@ class _MyAppState extends State<MyApp> {
   var data = [];
 
   getData() async{
-  var result = await http.get(Uri.parse('https://codingapple1ssd.github.io/app/data.json'));
+  var result = await http.get(Uri.parse('https://codingapple1.github.io/app/data.json'));
   if(result.statusCode == 200){
-    data = (jsonDecode(result.body));
+    setState(() {
+      data = (jsonDecode(result.body));
+    });
     print(data);
   }
   else{
-    Fluttertoast.showToast(msg: "데이터를 불러오는데 실패했습니다.",  toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,);
-    throw Exception('실패함 ㅄ');
+      Fluttertoast.showToast(
+        msg: "데이터를 불러오는데 실패했습니다.",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,);
+    //throw Exception('실패함 ㅄ');
   }
 }
+  getmore() async{
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/more1.json'));
+    if(result.statusCode == 200) {
+      var moreData = jsonDecode(result.body);
+      setState(() {
+        data.add(moreData);
+      });
+    }
+  }
   @override
-
   void initState() {
     super.initState();
     getData();
@@ -55,7 +69,7 @@ class _MyAppState extends State<MyApp> {
         )
       ],
       ),
-      body: [Home(data: data), Text('shop')][tab],
+      body: [Home(data: data, getmore : getmore), Text('shop')][tab],
       bottomNavigationBar: BottomNavigationBar(
         showSelectedLabels: false,
         showUnselectedLabels: false,
@@ -73,23 +87,56 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class Home extends StatelessWidget {
-  const Home({super.key,required this.data});
+class Home extends StatefulWidget {
+  const Home({super.key,required this.data, required this.getmore});
+  final Function() getmore;
   final List data;
   @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+
+
+  var scroll = ScrollController();
+  var extraData;
+  var loading = 0;
+  
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if(scroll.position.pixels == scroll.position.maxScrollExtent){
+      loading++;
+    }
+
+    scroll.addListener((){
+      if(scroll.position.pixels == scroll.position.maxScrollExtent && loading == 1){
+        widget.getmore();
+      }
+    });
+  }
+  
+
+  @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: data.length, itemBuilder: (c,i){
-         return Column(
-           crossAxisAlignment: CrossAxisAlignment.start ,
-            children: [
-              Image.network(data[i]['image'],width: double.infinity,),
-              Text(data[i]['likes'].toString()),
-              Text(data[i]['user'].toString()),
-              Text(data[i]['content'.toString()]),
-            ],
-          );
-        }
-    );
+    if(widget.data.isNotEmpty){
+      return ListView.builder(
+          itemCount: widget.data.length,controller: scroll, itemBuilder: (c,i){
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start ,
+          children: [
+            Image.network(widget.data[i]['image']),
+            Text('좋아용 ${widget.data[i]['likes'].toString()}'),
+            Text(widget.data[i]['user'].toString()),
+            Text(widget.data[i]['content'].toString()),
+          ],
+        );
+      }
+      );
+    }
+    else {
+      return Text('로딩중임');
+    }
   }
 }
