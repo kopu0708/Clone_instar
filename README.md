@@ -677,73 +677,33 @@ Theme.of()는 족보를 하나 입력할 수 있다. 그 족보에서 가장 가
 
 원하는 스타일을 하나 딱 가져와서 쓸 수 있다.
 
-## 탭으로 페이지 나누는 법 
-페이지로 나누고 싶다면 여러가지 방법이 있다. 페이지가 많다면 Router를 써도 되고 
+## Flutter에서 탭(Tab)으로 페이지 나누기 📱
 
-Navigator를 써서 새로운 페이지를 위에 덮어씌워도 된다. 
+Flutter에서 동적인 탭 UI를 만드는 핵심은 **3단계 원칙**을 따르는 것입니다. `Router`나 `Navigator`를 사용하는 방법도 있지만, 간단한 탭은 `StatefulWidget`을 이용해 쉽게 구현할 수 있습니다.
 
-탭도 있는데 탭을 만드는 방법은 다음 3-step이 이다.
+---
 
-1. 현재 UI의 현재 상태를 저장할 state를 만들어둔다.
-2. 그 state에 따라 현재 UI가 어떻게 보일지 코드를 짜 넣는다.
-3. 유저가 state 쉽게 조작할 수 있는 기능을 개발해 놓는다.
+### 📝 3단계 핵심 원칙
 
-위와 같이 3-step을 사용하면 동적인 UI를 만들 수 있다. 
+동적인 UI를 만들기 위해서는 다음 세 가지 단계를 기억하면 됩니다.
 
-자세히 설명을 하자면 
-~~~
-class MyApp extends StatefulWidget{
-  const MyApp({Key? key}) : super(key: key);
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
+1.  **상태(State) 생성**: UI의 현재 모습을 기억할 변수(State)를 만듭니다. 예를 들어, '현재 어떤 탭이 선택되었는가?'를 저장합니다.
+2.  **UI 구성**: 만들어 둔 상태(State) 값에 따라 화면이 어떻게 보일지 코드로 작성합니다. "만약 0번 탭 상태이면, 홈 화면을 보여줘" 와 같은 방식입니다.
+3.  **상태(State) 변경**: 사용자가 버튼을 누르는 등 특정 행동을 했을 때, 상태(State)를 변경하고 화면을 새로고침(`setState`)하는 기능을 구현합니다.
 
+---
+
+### 💻 코드 예시로 살펴보기
+
+위 3단계 원칙이 실제 코드에서 어떻게 적용되는지 살펴보겠습니다.
+
+#### **1. 상태 변수 선언 (`StatefulWidget`)**
+
+`StatefulWidget` 안에서 현재 몇 번째 탭이 선택되었는지 기억할 `tab`이라는 상태 변수를 만듭니다.
+
+```dart
 class _MyAppState extends State<MyApp> {
-var tab = 0;
-(생략)
-~~~
-위와 같이 StatefulWidget에서 state를 하나 만든다. 위 처럼 단순하게 0이면 0번 탭을 보여주는 상태 이렇게 써도 되고 var tab = 'home' 이런 식으로 써도 상관없다.
-
-~~~
-body: [Text('홈페이지'), Text('샵페이지')]
-~~~
-Scaffold()안에 body: 파라미터에 페이지 2개를 만들었다. 
-이러면 tab이 0이면 Text('홈페이지') 이게 보이고 1이면 Text('삽페이지')이게 보일 것 같다.
-
-왜냐하면 List 자료형과 그 안에서 데이터를 뽑는 문법이기 때문이다.
-
-~~~
-bottomNavigationBar: BottomNavigationBar(
-    showUnselectedLabels: false,
-    showSelectedLabels: false,
-    currentIndex: pageNum,
-    onTap: (i){
-      print(i);
-      setState((){
-      tab = i;
-      })
-    },
-    items: [ 생략 ]
-)  
-~~~
-BottomNavigationBar() 안에는 onTap: 파라미터를 추가할 수 있습니다.
-
-이러면 눌렀을 때 코드를 실행해주는데
-
-i라는 파라미터를 추가하면 지금 몇번째 버튼을 눌렀는지 알려줍니다.
-
-0번 버튼 누르면 i는 0이 됩니다.
-
-1번 버튼 누르면 i는 1이 됩니다. 
-
- 
-
-그럼 그걸 tab = i; 이렇게 넣어버리면
-
-0번 버튼 누르면 tab이 0이 되고 그럼 Text('홈페이지')가 보이고
-
-1번 버튼 누르면 tab이 1이 되고 그럼 Text('샵페이지')가 보이고 그렇다.
-
-참고로 좌우 슬라이드가 되게 만들고 싶으면 PageView()위젯으로 페이지들을 감싸면 된다.
-
-
+  // 1단계: 현재 UI 상태를 저장할 state 생성
+  var tab = 0; 
+  // ...
+}
