@@ -4,6 +4,8 @@ import 'package:http/http.dart'as http;
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/rendering.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 
 void main() {
@@ -25,6 +27,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   var tab = 0;
   var data = [];
+  var page = 1;
+  var isLoading = false;
+  var userImage;
 
   getData() async{
   var result = await http.get(Uri.parse('https://codingapple1.github.io/app/data.json'));
@@ -43,13 +48,29 @@ class _MyAppState extends State<MyApp> {
   }
 }
   getmore() async{
-    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/more1.json'));
+    if (isLoading) return;
+
+    setState(() {
+      isLoading = true;
+    });
+
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/more$page.json'));
     if(result.statusCode == 200) {
       var moreData = jsonDecode(result.body);
       setState(() {
         data.add(moreData);
+        page++;
       });
     }
+    else{
+      Fluttertoast.showToast(
+          msg: "더 이상 데이터가 없습니다.",
+          gravity: ToastGravity.BOTTOM
+      );
+    }
+    setState(() {
+      isLoading = false;
+    });
   }
   @override
   void initState() {
@@ -64,8 +85,19 @@ class _MyAppState extends State<MyApp> {
         title:Text('Instargram'),
         actions: [
         IconButton(
-            onPressed: (){},
-            icon: Icon(Icons.add_box_outlined)
+            icon: Icon(Icons.add_box_outlined),
+            onPressed: () async{
+              var picker = ImagePicker();
+              var image = await picker.pickImage(source: ImageSource.gallery);
+              if(image != null){
+                setState(() {
+                  userImage = File(image.path);
+                });
+              }
+              Navigator.push(context,
+              MaterialPageRoute(builder: (c) => Upload(userImage: userImage,))
+              );
+            },
         )
       ],
       ),
@@ -100,18 +132,13 @@ class _HomeState extends State<Home> {
 
   var scroll = ScrollController();
   var extraData;
-  var loading = 0;
   
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    if(scroll.position.pixels == scroll.position.maxScrollExtent){
-      loading++;
-    }
-
     scroll.addListener((){
-      if(scroll.position.pixels == scroll.position.maxScrollExtent && loading == 1){
+      if(scroll.position.pixels == scroll.position.maxScrollExtent){
         widget.getmore();
       }
     });
@@ -138,5 +165,26 @@ class _HomeState extends State<Home> {
     else {
       return Text('로딩중임');
     }
+  }
+}
+class Upload extends StatelessWidget {
+  const Upload({super.key,this.userImage});
+  final userImage;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.file(userImage),
+          Text('이미지 업로드 화면'),
+          TextField( ),
+          IconButton(onPressed: (){Navigator.pop(context);},
+                     icon: Icon(Icons.close)
+          )
+        ],
+      ),
+    );
   }
 }
