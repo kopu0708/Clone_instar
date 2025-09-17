@@ -677,3 +677,65 @@ Theme.of()는 족보를 하나 입력할 수 있다. 그 족보에서 가장 가
 
 원하는 스타일을 하나 딱 가져와서 쓸 수 있다.
 
+## Flutter에서 탭(Tab)으로 페이지 나누기 📱
+
+Flutter에서 동적인 탭 UI를 만드는 핵심은 **3단계 원칙**을 따르는 것입니다. `Router`나 `Navigator`를 사용하는 방법도 있지만, 간단한 탭은 `StatefulWidget`을 이용해 쉽게 구현할 수 있습니다.
+
+---
+
+### 📝 3단계 핵심 원칙
+
+동적인 UI를 만들기 위해서는 다음 세 가지 단계를 기억하면 됩니다.
+
+1.  **상태(State) 생성**: UI의 현재 모습을 기억할 변수(State)를 만듭니다. 예를 들어, '현재 어떤 탭이 선택되었는가?'를 저장합니다.
+2.  **UI 구성**: 만들어 둔 상태(State) 값에 따라 화면이 어떻게 보일지 코드로 작성합니다. "만약 0번 탭 상태이면, 홈 화면을 보여줘" 와 같은 방식입니다.
+3.  **상태(State) 변경**: 사용자가 버튼을 누르는 등 특정 행동을 했을 때, 상태(State)를 변경하고 화면을 새로고침(`setState`)하는 기능을 구현합니다.
+
+---
+
+### 💻 코드 예시로 살펴보기
+
+위 3단계 원칙이 실제 코드에서 어떻게 적용되는지 살펴보겠습니다.
+
+#### **1. 상태 변수 선언 (`StatefulWidget`)**
+
+`StatefulWidget` 안에서 현재 몇 번째 탭이 선택되었는지 기억할 `tab`이라는 상태 변수를 만듭니다.
+
+```dart
+class _MyAppState extends State<MyApp> {
+  // 1단계: 현재 UI 상태를 저장할 state 생성
+  var tab = 0; 
+  // ...
+}
+```
+#### **2. 상태에 따라 본문(Body) 표시**
+Scaffold의 body 부분에서 tab 변수 값에 따라 다른 페이지를 보여줍니다. List 자료형을 만들고 tab 변수를 인덱스로 활용합니다.
+```
+// ...
+body: [
+  Text('홈페이지 내용'), 
+  Text('샵페이지 내용')
+][tab], // tab이 0이면 첫 번째 위젯, 1이면 두 번째 위젯 표시
+// ...
+```
+#### **3.BottomNavigationBar로 상태 변경하기**
+사용자가 하단 탭을 누를 때마다 tab 변수의 값을 업데이트하고, setState()를 호출하여 화면을 다시 그리도록 합니다.
+```
+// ...
+bottomNavigationBar: BottomNavigationBar(
+  currentIndex: tab,
+  onTap: (i) {
+    // 3단계: 유저가 state를 조작할 수 있는 기능 개발
+    setState(() {
+      tab = i; // 탭을 누르면 tab 변수 값을 변경하고 화면을 새로고침
+    });
+  },
+  items: [
+    BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
+    BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: '샵'),
+  ],
+),
+// ...
+```
+**✨ 추가 팁: 좌우 슬라이드로 페이지 넘기기**
+만약 탭 버튼 클릭뿐만 아니라, 좌우로 화면을 밀어서(Swipe) 페이지를 전환하고 싶다면 body 부분을 PageView 위젯으로 감싸면 간단하게 구현할 수 있습니다.
