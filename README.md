@@ -707,3 +707,33 @@ class _MyAppState extends State<MyApp> {
   var tab = 0; 
   // ...
 }
+```
+#### **2. 상태에 따라 본문(Body) 표시**
+Scaffold의 body 부분에서 tab 변수 값에 따라 다른 페이지를 보여줍니다. List 자료형을 만들고 tab 변수를 인덱스로 활용합니다.
+```
+// ...
+body: [
+  Text('홈페이지 내용'), 
+  Text('샵페이지 내용')
+][tab], // tab이 0이면 첫 번째 위젯, 1이면 두 번째 위젯 표시
+// ...
+```
+#### **3.BottomNavigationBar로 상태 변경하기**
+사용자가 하단 탭을 누를 때마다 tab 변수의 값을 업데이트하고, setState()를 호출하여 화면을 다시 그리도록 합니다.
+// ...
+bottomNavigationBar: BottomNavigationBar(
+  currentIndex: tab,
+  onTap: (i) {
+    // 3단계: 유저가 state를 조작할 수 있는 기능 개발
+    setState(() {
+      tab = i; // 탭을 누르면 tab 변수 값을 변경하고 화면을 새로고침
+    });
+  },
+  items: [
+    BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
+    BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: '샵'),
+  ],
+),
+// ...
+**✨ 추가 팁: 좌우 슬라이드로 페이지 넘기기**
+만약 탭 버튼 클릭뿐만 아니라, 좌우로 화면을 밀어서(Swipe) 페이지를 전환하고 싶다면 body 부분을 PageView 위젯으로 감싸면 간단하게 구현할 수 있습니다.
