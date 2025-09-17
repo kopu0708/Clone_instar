@@ -720,6 +720,7 @@ body: [
 ```
 #### **3.BottomNavigationBar로 상태 변경하기**
 사용자가 하단 탭을 누를 때마다 tab 변수의 값을 업데이트하고, setState()를 호출하여 화면을 다시 그리도록 합니다.
+```
 // ...
 bottomNavigationBar: BottomNavigationBar(
   currentIndex: tab,
@@ -735,5 +736,6 @@ bottomNavigationBar: BottomNavigationBar(
   ],
 ),
 // ...
+```
 **✨ 추가 팁: 좌우 슬라이드로 페이지 넘기기**
 만약 탭 버튼 클릭뿐만 아니라, 좌우로 화면을 밀어서(Swipe) 페이지를 전환하고 싶다면 body 부분을 PageView 위젯으로 감싸면 간단하게 구현할 수 있습니다.
