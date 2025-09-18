@@ -72,6 +72,11 @@ class _MyAppState extends State<MyApp> {
       isLoading = false;
     });
   }
+  void addPost(Map<String, dynamic> newPost){
+    setState(() {
+      data.insert(0, newPost);
+    });
+  }
   @override
   void initState() {
     super.initState();
@@ -95,7 +100,10 @@ class _MyAppState extends State<MyApp> {
                 });
               }
               Navigator.push(context,
-              MaterialPageRoute(builder: (c) => Upload(userImage: userImage,))
+              MaterialPageRoute(builder: (c) => Upload(
+                  userImage: userImage,
+                  addPost: addPost,
+              ))
               );
             },
         )
@@ -135,7 +143,6 @@ class _HomeState extends State<Home> {
   
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     scroll.addListener((){
       if(scroll.position.pixels == scroll.position.maxScrollExtent){
@@ -149,11 +156,27 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     if(widget.data.isNotEmpty){
       return ListView.builder(
-          itemCount: widget.data.length,controller: scroll, itemBuilder: (c,i){
+          itemCount: widget.data.length,
+          controller: scroll,
+          itemBuilder: (c,i){
+            Widget imageWidget;
+
+            var imageData = widget.data[i]['image'];
+            // 이미지 데이터의 타입을 확인
+            if (imageData is String) {
+              // 타입이 String이면 Image.network 사용
+              imageWidget = Image.network(imageData);
+            } else if (imageData is File) {
+              // 타입이 File이면 Image.file 사용
+              imageWidget = Image.file(imageData);
+            } else {
+              // 예외 처리: 혹시 모를 다른 타입에 대비해 빈 컨테이너 표시
+              imageWidget = Container(color: Colors.grey);
+            }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start ,
           children: [
-            Image.network(widget.data[i]['image']),
+            imageWidget,
             Text('좋아용 ${widget.data[i]['likes'].toString()}'),
             Text(widget.data[i]['user'].toString()),
             Text(widget.data[i]['content'].toString()),
@@ -168,8 +191,9 @@ class _HomeState extends State<Home> {
   }
 }
 class Upload extends StatelessWidget {
-  const Upload({super.key,this.userImage});
+  const Upload({super.key,this.userImage, this.addPost});
   final userImage;
+  final Function(Map<String, dynamic>)? addPost;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,11 +203,88 @@ class Upload extends StatelessWidget {
         children: [
           Image.file(userImage),
           Text('이미지 업로드 화면'),
-          TextField( ),
+          TextButton(onPressed: (){
+            Navigator.push(
+              context, 
+              MaterialPageRoute(builder: (context) => (addList(
+                userImage: userImage,
+                addPost: addPost,
+              )))
+            );
+          }, child: Text('다음')),
           IconButton(onPressed: (){Navigator.pop(context);},
                      icon: Icon(Icons.close)
           )
         ],
+      ),
+    );
+  }
+}
+class addList extends StatefulWidget {
+   addList({super.key, this.userImage, this.addPost});
+   final userImage;
+   final Function(Map<String,dynamic>)? addPost;
+  @override
+  State<addList> createState() => _addListState();
+}
+
+class _addListState extends State<addList> {
+   final UserName = TextEditingController();
+   final letter = TextEditingController();
+
+  @override
+  void dispose(){
+    UserName.dispose();
+    letter.dispose();
+    super.dispose();
+  }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(children: [
+          TextField(controller: UserName,
+            keyboardType: TextInputType.text,
+            maxLength: 10,
+            decoration: InputDecoration(
+              labelText: 'user name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          SizedBox(height: 30,),
+          TextField(controller: letter,
+            keyboardType: TextInputType.multiline,
+            minLines: 5, maxLines: 10, maxLength: 100,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: '글내용 작성'
+            ),
+          ),
+          ElevatedButton(onPressed: (){
+            if(widget.addPost != null){
+              var newPost = {
+                "id": UserName,
+                "image": widget.userImage, // File 객체 이미지
+                "likes": 0,
+                "date": "July 25",
+                "content": letter.text,
+                "liked": false,
+                "user": UserName.text
+              };
+              widget.addPost!(newPost);
+            }
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+              child:Text('발행'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.lightBlueAccent,
+                foregroundColor: Colors.black,
+                elevation: 5
+              ),
+          )
+        ],),
       ),
     );
   }

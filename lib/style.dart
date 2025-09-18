@@ -20,4 +20,5 @@ var theme = ThemeData(
   textTheme: TextTheme( //앱 텍스트 디자인
     bodyMedium:TextStyle(color: Colors.black54),
   ),
+  
 );
