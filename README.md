@@ -868,5 +868,9 @@ print(map['name']);  //'john' 나옴
 
 참고로 List안에 Map 넣어도 상관없고 Map 안에 List 넣어도 상관없습니다.
 
+추가로 GET요청이 실패했을 경우 유저에게 간단한 알림창을 띄우고 싶으면 Fluttertoast or SnackBar 찾아보자 (구글 검색이나 채찍피티한테 질문 ㄱㄱ)
+
+todo: flutter.builder 내용 추가
+
 
  
