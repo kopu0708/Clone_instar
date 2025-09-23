@@ -773,9 +773,9 @@ import 'dart:convert';
 이거 추가 한다. 밑에 두번째는 JSON -> 일반자료형 변환을 도와주는 함수모음집이다.
 
 다음으론 android/app/src/main/AndroidManifest.xml 파일 들어가서 
-
+~~~
 <uses-permission android:name="android.permissions.INTERNET" />
-
+~~~
 이런 코드를 추가해주면 된다.
 
 이제 get 요청을 날리는 법은 await http.get(Uri.parse('요청할Uri'))
