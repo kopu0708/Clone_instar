@@ -739,3 +739,134 @@ bottomNavigationBar: BottomNavigationBar(
 ```
 **✨ 추가 팁: 좌우 슬라이드로 페이지 넘기기**
 만약 탭 버튼 클릭뿐만 아니라, 좌우로 화면을 밀어서(Swipe) 페이지를 전환하고 싶다면 body 부분을 PageView 위젯으로 감싸면 간단하게 구현할 수 있습니다.
+
+## 서버와 데이터 주고 받는 법 
+서버는 *데이터 달라고 하면 데이터 주는 프로그램이다* 네이버 웹툰서버는 웹툰 달라고 하면 DB에서 웹툰 뽑아서 주듯이 
+
+그래서 어떻게 서버에게서 데이터를 받아오느냐 
+
+정확한 URL 주소로 GET 요청을 날려야한다.
+
+왜냐면 서버개발자들이 짜는 소스코드를 보면 
+
+"어떤 놈이 /product로 GET 요청날리면 상품 보내줘라"
+
+"어떤 놈이 /detail로 GET 요청날리면 상품 상세정보 보내줘라"
+
+이런 식으로 되어있기 때문입니다. 
+
+### GET 요청 날리는 법 
+
+http라는 이름의 패키지가 필요하다.
+늘 그랬듯이 pubspec.yaml 파일을 열어서 
+~~~
+dependencies:
+  http: ^1.5.0
+~~~
+추가하고 pub get 하면 된다. https://pub.dev/packages/http 여기서 최신 버전 확인 
+
+그 다음 main.dart 파일 들어가서 맨위에
+~~~
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+~~~
+이거 추가 한다. 밑에 두번째는 JSON -> 일반자료형 변환을 도와주는 함수모음집이다.
+
+다음으론 android/app/src/main/AndroidManifest.xml 파일 들어가서 
+
+<uses-permission android:name="android.permissions.INTERNET" />
+
+이런 코드를 추가해주면 된다.
+
+이제 get 요청을 날리는 법은 await http.get(Uri.parse('요청할Uri'))
+
+이거 쓰면 GET 요청을 날려주고 그 자리에 서버에서 가져온 데이터가 남는다.
+변수에 저장해서 사용 ㄱㄱ
+
+가져온 데이터는 대부분 JSON이다.
+
+서버랑 주고받는 데이터는 오직 문자만 가능하다. {},[] 이런거 불가능함
+
+큰따옴표로 전부 감싸면 문자취급을 받아서 주고받을 수는 있다. 즉 따옴표친 것들을 JSON 이라고 한다.
+
+JSON 그대로 쓰면 자료를 조작하기가 어렵다. 조작하기 쉬운 list,map 자료형으로 변환할려면 json.Decode() 여기에 넣었다가 빼면 된다.
+
+예외처리를 해서 서버가 이상할 때 실패를 대처하고 싶다. 그러면 
+~~~
+getData() async {
+  var result = await http.get(
+      Uri.parse('https://codingapple1.github.io/app/data.json')
+  );
+  if (result.statusCode == 200) {
+    print( jsonDecode(result.body) );
+  } else {
+    throw Exception('실패함ㅅㄱ');
+  }
+}
+~~~
+result.statusCode를 출력해보면 성공여부를 알 수 있다.
+
+대부분 200이 뜬다. 그 왜 우리가 흔히 보는 404에러 코드 그런거다. 
+
+아무튼 데이터를 가져오는 함수는 완성이다. 언제 실행시킬까?
+
+당연히 메인 위젯 로드시 바로 실행되어야한다. 
+
+initState() 함수 안에 코드짜면 된다. StatefulWidget 안에 넣을 수 있는 기본 함수인데
+
+initState() 안에 짠 코드는 위젯이 처음 로드될 떄 한번 자동으로 실행된다.
+~~~
+@override
+void initState() {
+  super.initState();
+  getData();
+}
+~~~
+@override, super 이런거 뭔데요
+ 
+
+1. 우리가 커스텀 위젯 만들 때 StatefulWidget 이런거를 extends로 복사해서 만들어야한다고 했습니다. 
+
+복사한 StatefulWidget class를 보통 부모class 라고 부르는데 
+
+부모 class 안에 나랑 똑같은 이름을 가진 함수가 있을 경우
+
+@override는 내걸 먼저 적용하라는 뜻입니다. 
+
+ 
+
+2. super.어쩌구는 부모 class 안에 있던 initState() 함수를 여기서 실행해달라는 뜻입니다.
+
+혹여나 부모 위젯이 있고 그놈도 initState()를 해야하는 경우 그거 먼저 실행하라는 뜻일 뿐입니다.
+
+ 
+
+3. 그냥 전부 플러터가 정상적으로 동작하기 위한
+
+부가적인 문법일 뿐인데 평생 수정할 일이 없으니 그냥 무시하고 지나가도 됩니다.
+
+이런 복잡한거 숨기고 보다 쉽게 쓸 수 있는 문법이 나오면 초보자들에게 좋겠군요 
+
+플러터 7.0 쯤 되면 그럴듯
+#### 빠르게 알아보는 Map 자료형
+자료 여러개를 변수 하나에 저장하고 싶으면 [] 아니면 {} 쓰면 됩니다.
+
+전자는 List, 후자는 Map 이라고 부릅니다. 
+
+var map = { 'john', 20 };
+Map은 List처럼 똑같이 여러 자료를 저장할 수 있는데 자료마다 왼쪽에 이름을 붙여야합니다.
+ 
+~~~
+var map = { 'name' : 'john', 'age' : 20 };
+print(map['name']);  //'john' 나옴
+~~~
+이렇게 안붙이면 큰일남 
+
+그리고 자료 꺼내는건 List랑 똑같은데
+
+자료 번호가 아니라 이름을 불러주면 꺼낼 수 있습니다. 
+
+참고로 List안에 Map 넣어도 상관없고 Map 안에 List 넣어도 상관없습니다.
+
+
+ 
