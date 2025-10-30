@@ -10,12 +10,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'notification.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await initNotification();
   runApp(
       ChangeNotifierProvider(
           create: (c) => Store1(),
           child: MaterialApp(
+            navigatorKey: navigatorKey,
             theme: style.theme,
             home: MyApp(),
           )
@@ -107,12 +111,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    initNotification();
     loadData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(child: Text('알람띄우기'),
+        onPressed: (){showNotification();},
+      ),
       appBar: AppBar(
         title:Text('Instargram'),
         actions: [
@@ -277,7 +285,8 @@ class _addListState extends State<addList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(children: [
@@ -330,6 +339,16 @@ class Store1 extends ChangeNotifier{
   var follow = 0;
   bool isfollow = false;
 
+  var ProfileImage = [];
+
+  getData() async{
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/profile.json'));
+    var result2 = jsonDecode(result.body);
+    ProfileImage = result2;
+    print(result2);
+    notifyListeners();
+  }
+
   FollowerUpDown(){
     if(isfollow == false){
     follow++;
@@ -351,25 +370,46 @@ class Profile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(context.watch<Store1>().name),),
-      body: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.grey,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(child: ProfileHeader(),),
+          SliverGrid(
+              delegate: SliverChildBuilderDelegate(
+                  (c,i) => Image.network(context.watch<Store1>().ProfileImage[i]),
+                  childCount: context.watch<Store1>().ProfileImage.length,
               ),
-              Text('팔로워 ${context.watch<Store1>().follow}명'),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: context.read<Store1>().isfollow ? Colors.white70 : Colors.blue
-                ),
-                  onPressed: (){
-                context.read<Store1>().FollowerUpDown();
-              },
-                  child: Text('Follow')
-              )
-            ],
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2)
           )
+        ],
+      )
+    );
+  }
+}
+
+class ProfileHeader extends StatelessWidget {
+  const ProfileHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return  Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        CircleAvatar(
+          radius: 30,
+          backgroundColor: Colors.grey,
+        ),
+        Text('팔로워 ${context.watch<Store1>().follow}명'),
+        ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: context.read<Store1>().isfollow ? Colors.white70 : Colors.blue
+            ),
+            onPressed: (){
+              context.read<Store1>().FollowerUpDown();
+            },
+            child: Text('Follow')
+        ),
+        ElevatedButton(onPressed: (){context.read<Store1>().getData();}, child: Text('가져오기'))
+      ],
     );
   }
 }
