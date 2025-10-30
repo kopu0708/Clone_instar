@@ -739,3 +739,437 @@ bottomNavigationBar: BottomNavigationBar(
 ```
 **✨ 추가 팁: 좌우 슬라이드로 페이지 넘기기**
 만약 탭 버튼 클릭뿐만 아니라, 좌우로 화면을 밀어서(Swipe) 페이지를 전환하고 싶다면 body 부분을 PageView 위젯으로 감싸면 간단하게 구현할 수 있습니다.
+
+## 서버와 데이터 주고 받는 법 
+서버는 *데이터 달라고 하면 데이터 주는 프로그램이다* 네이버 웹툰서버는 웹툰 달라고 하면 DB에서 웹툰 뽑아서 주듯이 
+
+그래서 어떻게 서버에게서 데이터를 받아오느냐 
+
+정확한 URL 주소로 GET 요청을 날려야한다.
+
+왜냐면 서버개발자들이 짜는 소스코드를 보면 
+
+"어떤 놈이 /product로 GET 요청날리면 상품 보내줘라"
+
+"어떤 놈이 /detail로 GET 요청날리면 상품 상세정보 보내줘라"
+
+이런 식으로 되어있기 때문입니다. 
+
+### GET 요청 날리는 법 
+
+http라는 이름의 패키지가 필요하다.
+늘 그랬듯이 pubspec.yaml 파일을 열어서 
+~~~
+dependencies:
+  http: ^1.5.0
+~~~
+추가하고 pub get 하면 된다. https://pub.dev/packages/http 여기서 최신 버전 확인 
+
+그 다음 main.dart 파일 들어가서 맨위에
+~~~
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+~~~
+이거 추가 한다. 밑에 두번째는 JSON -> 일반자료형 변환을 도와주는 함수모음집이다.
+
+다음으론 android/app/src/main/AndroidManifest.xml 파일 들어가서 
+~~~
+<uses-permission android:name="android.permissions.INTERNET" />
+~~~
+이런 코드를 추가해주면 된다.
+
+이제 get 요청을 날리는 법은 await http.get(Uri.parse('요청할Uri'))
+
+이거 쓰면 GET 요청을 날려주고 그 자리에 서버에서 가져온 데이터가 남는다.
+변수에 저장해서 사용 ㄱㄱ
+
+가져온 데이터는 대부분 JSON이다.
+
+서버랑 주고받는 데이터는 오직 문자만 가능하다. {},[] 이런거 불가능함
+
+큰따옴표로 전부 감싸면 문자취급을 받아서 주고받을 수는 있다. 즉 따옴표친 것들을 JSON 이라고 한다.
+
+JSON 그대로 쓰면 자료를 조작하기가 어렵다. 조작하기 쉬운 list,map 자료형으로 변환할려면 json.Decode() 여기에 넣었다가 빼면 된다.
+
+예외처리를 해서 서버가 이상할 때 실패를 대처하고 싶다. 그러면 
+~~~
+getData() async {
+  var result = await http.get(
+      Uri.parse('https://codingapple1.github.io/app/data.json')
+  );
+  if (result.statusCode == 200) {
+    print( jsonDecode(result.body) );
+  } else {
+    throw Exception('실패함ㅅㄱ');
+  }
+}
+~~~
+result.statusCode를 출력해보면 성공여부를 알 수 있다.
+
+대부분 200이 뜬다. 그 왜 우리가 흔히 보는 404에러 코드 그런거다. 
+
+아무튼 데이터를 가져오는 함수는 완성이다. 언제 실행시킬까?
+
+당연히 메인 위젯 로드시 바로 실행되어야한다. 
+
+initState() 함수 안에 코드짜면 된다. StatefulWidget 안에 넣을 수 있는 기본 함수인데
+
+initState() 안에 짠 코드는 위젯이 처음 로드될 떄 한번 자동으로 실행된다.
+~~~
+@override
+void initState() {
+  super.initState();
+  getData();
+}
+~~~
+@override, super 이런거 뭔데요
+ 
+
+1. 우리가 커스텀 위젯 만들 때 StatefulWidget 이런거를 extends로 복사해서 만들어야한다고 했습니다. 
+
+복사한 StatefulWidget class를 보통 부모class 라고 부르는데 
+
+부모 class 안에 나랑 똑같은 이름을 가진 함수가 있을 경우
+
+@override는 내걸 먼저 적용하라는 뜻입니다. 
+
+ 
+
+2. super.어쩌구는 부모 class 안에 있던 initState() 함수를 여기서 실행해달라는 뜻입니다.
+
+혹여나 부모 위젯이 있고 그놈도 initState()를 해야하는 경우 그거 먼저 실행하라는 뜻일 뿐입니다.
+
+ 
+
+3. 그냥 전부 플러터가 정상적으로 동작하기 위한
+
+부가적인 문법일 뿐인데 평생 수정할 일이 없으니 그냥 무시하고 지나가도 됩니다.
+
+이런 복잡한거 숨기고 보다 쉽게 쓸 수 있는 문법이 나오면 초보자들에게 좋겠군요 
+
+플러터 7.0 쯤 되면 그럴듯
+#### 빠르게 알아보는 Map 자료형
+자료 여러개를 변수 하나에 저장하고 싶으면 [] 아니면 {} 쓰면 됩니다.
+
+전자는 List, 후자는 Map 이라고 부릅니다. 
+
+var map = { 'john', 20 };
+Map은 List처럼 똑같이 여러 자료를 저장할 수 있는데 자료마다 왼쪽에 이름을 붙여야합니다.
+ 
+~~~
+var map = { 'name' : 'john', 'age' : 20 };
+print(map['name']);  //'john' 나옴
+~~~
+이렇게 안붙이면 큰일남 
+
+그리고 자료 꺼내는건 List랑 똑같은데
+
+자료 번호가 아니라 이름을 불러주면 꺼낼 수 있습니다. 
+
+참고로 List안에 Map 넣어도 상관없고 Map 안에 List 넣어도 상관없습니다.
+
+추가로 GET요청이 실패했을 경우 유저에게 간단한 알림창을 띄우고 싶으면 Fluttertoast or SnackBar 찾아보자 (구글 검색이나 채찍피티한테 질문 ㄱㄱ)
+
+## Flutter 다루기
+서버에서 3개의 데이터를 받았다고 가정해보자 데이터에는 글내용/날짜/좋아요 갯수 이런게 들어 있는데 위젯안에 보여줄려면 어떻게 해야 할까?
+
+일단 state에 저장해두는게 좋을 것이다. 게시물 데이터는 대체로 자주 바뀌니깐
+
+~~~
+class _MyAppState extends State<MyApp> {
+  var tab = 0;
+  var data = [];
+
+  getData() async {
+    var result = await http.get(Uri.parse('https://codingapple1.github.io/app/data.json'));
+    var result2 = jsonDecode(result.body);
+    setState((){
+      data = result2;
+    })
+  }
+
+  (생략)
+~~~
+data라는 state를 만들고 위와 같이 코드를 짜면 모두 저장 될 것이다.
+
+이것을 Home()안에 Text() 이런 곳에 data[0]['content'] 이렇게 써야 글내용이 보일 것이다.
+
+물론 state를 home 안에서 쓰고 싶으면 전송을 해야한다. 언제나 하던 3-step이다. 전송하고 등록하고 Home에서 쓰자 근데 그냥 대충 짜면 안된다. 서버에서 데이터를 가져오는 작업은 오래걸리기 때문에 그 전까지는 data라는 변수는 비어있다. 간단하게 if문을 써서 data에 뭐가 들어오면 보여주세요 아니라면 원하는 위젯을 보여주세요 하고 요청하자
+
+CircularProgressIndicator() 이런 것도 있으니 써보자 
+
+#### Dio 패키지
+
+ 
+
+서버와 GET요청 POST 요청할 일이 많으면 http 패키지 말고 Dio 패키지 설치해서 쓰는게 좋을 수 있습니다.
+
+왜냐면 코드가 짧아지고 편의성 기능도 많이 제공하니까요.
+
+심심하면 한번 써보시길 바랍니다.
+
+### FutureBuilder
+🎯 FutureBuilder: 비동기 데이터를 위한 UI 빌더
+**FutureBuilder**는 이름 그대로 **Future**의 상태(대기, 완료, 에러)가 변할 때마다 UI를 새로 그려주는 위젯이다. 서버에서 데이터를 받아오거나, 파일 읽기 등 완료까지 시간이 걸리는 작업의 결과를 화면에 표시할 때 매우 유용하다.
+
+**FutureBuilder**는 크게 두 가지 핵심 요소를 가진다.
+1. future 속성: 처리할 비동기 작업을 지정한다. 서버에 데이터를 요청하는 http.get()함수 등이 될 수 있다. 중요: 이 future는 build 메소드가 호출될 때마다 재실행되지 않도록 initState()에서 생성하여 변수에 저장한 뒤 사용하는 것이 일반적입니다. 그렇지 않으면 화면이 업데이트될 때마다 불필요한 API 요청이 반복될 수 있습니다.
+2. builder 속성: future의 상태에 따라 어떤 위젯을 그릴지 정의하는 함수이다.
+
+이 함수는 BuildContext와 AsyncSnapshot 두 개의 인자를 받습니다.
+
+**snapshot**은 Future의 현재 상태와 데이터를 담고 있는 객체입니다.
+
+snapshot.connectionState: 연결 상태를 확인합니다. ConnectionState.waiting일 때는 로딩 중, ConnectionState.done일 때는 작업 완료를 의미합니다.
+
+snapshot.hasData: 데이터가 성공적으로 들어왔는지 확인합니다. (값이 null이 아니면 true)
+
+snapshot.data: 성공적으로 받아온 데이터를 담고 있습니다.
+
+snapshot.hasError: 에러 발생 여부를 확인합니다.
+~~~
+// 예시 코드
+FutureBuilder(
+  future: getData(), // initState에서 미리 정의해둔 Future 함수
+  builder: (context, snapshot) {
+    // 1. 로딩 중일 때
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(child: CircularProgressIndicator()); // 로딩 인디케이터 표시
+    } 
+    // 2. 에러가 발생했을 때
+    else if (snapshot.hasError) {
+      return Center(child: Text('오류가 발생했습니다: ${snapshot.error}'));
+    } 
+    // 3. 데이터가 성공적으로 로딩되었을 때
+    else if (snapshot.hasData) {
+      // snapshot.data를 사용해 원하는 위젯을 구성
+      return Text('성공적으로 데이터를 가져왔습니다: ${snapshot.data}'); 
+    }
+    // 4. 데이터가 없을 때 (로딩은 끝났지만 데이터가 비어있는 경우)
+    else {
+      return Center(child: Text('데이터가 없습니다.'));
+    }
+  },
+)
+~~~
+페이지에 진입할 때 데이터를 한 번만 로드해서 보여주는 경우에 매우 적합하다.
+
+로딩, 에러, 성공 상태에 따른 UI 처리를 위젯 하나로 깔끔하게 관리할 수 있어 코드가 간결해진다.
+
+하지만 일회성 작업 결과를 반환하므로 지속적으로 데이터가 변경되거나 추가되는 상황에는 부적합하다.
+
+## 스코롤 위치 파악하는 법과 더보기 요청 
+#### 스크롤 위치 기록하려면 StatefulWidget이 필요
+스크롤 위치를 파악하고 싶으면 해당 위젯을 StatefulWidget으로 바꾸는게 좋습니다.
+
+그러니까 우리 Home 위젯을 StatefulWidget으로 빨리 변경하십시오
+
+전구버튼 누르면 쉬울듯
+
+(참고) StatefulWidget은 class가 2개입니다.
+
+부모가 보낸 state를 등록할 때는 윗 class에 등록하고
+
+사용은 아랫 class에서 합니다.
+
+아랫 class에서 윗 class에 있는 변수를 사용할 때는 widget.변수명 이렇게 씁니다. 
+
+#### 스크롤바 위치 기록해주는 ScrollCController 
+ListView 사용하면 안에 controller: 라는 파라미터를 넣을 수 있다.
+
+거기에 변수 하나 넣으면 스크롤 위치에 대한 정보들을 그 변수에 계속 기록해준다.
+
+~~~
+class _HomeState extends State<Home> {
+  var scroll = ScrollController();
+
+  @override
+  Widget build(BuildContext context) {
+  if (widget.data.isNotEmpty){
+    return ListView.builder(itemCount: 3, controller: scroll, (생략)
+~~~
+이렇게 꽃아넣으면 ListView가 스크롤될 때 마다 스크롤 위치정보들이 scroll 변수에 기록된다.
+
+이제 유저가 맨 밑바닥까지 스크롤하면 이런 코드실행해주세요~ 라고 코드를 짜야하는데 
+
+이러한 코드들은 **유저가 스크롤할 때 마다 매번 실행해줘야한다** addListener 이런거 쓰면 된다.
+
+#### 스크롤 할 때 마다 코드 실행해주는 리스너 부착하기 
+ 
+
+왼쪽 변수가 변화할 때 마다 코드를 실행하고 싶으면
+
+변수명.addListener((){ 실행할코드 })
+
+이렇게 코드를 짭니다. 
+
+자바스크립트에도 비슷한거 있죠 아마 
+~~~
+class _HomeState extends State<Home> {
+  var scroll = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    scroll.addListener( () {
+      print('스크롤위치 변화함')
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+  if (widget.data.isNotEmpty){
+    return ListView.builder(itemCount: 3, controller: scroll, (생략)
+~~~
+addListener는 보통 initState안에 사용합니다.
+
+아무튼 그럼 이제 scroll 변수가 변할 때 마다 안에있는 print() 문이 실행되겠군요. 
+
+진짜임 확인해보셈 
+
+이제 리스너 안에서 유저 스크롤 위치를 감시하면 됩니다.
+
+유저가 얼마나 위에서 부터 스크롤바를 내렸는지는 scroll.position.pixels 이걸 출력해보시면 되고
+
+최대 스크롤 내릴 수 있는 높이는 scroll.position.maxScrollExtent 이걸 출력해보시면 되고 
+
+스크롤 방향이 위인지 아래인지는 scroll.position.userScrollDirection 이걸 출력해보시면 되고
+
+아무튼 여러가지 출력가능 
+
+(참고) 스크롤 위치를 다룰 땐 
+
+import 'package:flutter/rendering.dart'; 이거 import 해놓고 쓰는게 좋습니다.
+-----
+## 상세페이지 만들기 (Navigator)
+앱에서 새로운 페이지를 띄울때 페이지 위에 페이지를 덮는 식으로 간단하게 페이지 이동을 구현할 수 있다.
+
+Navigator.push() 이거 쓰면 다른 위젯으로 덮어준다. 아무튼 페이지 이동임
+~~~
+IconButton(
+  icon: Icon(Icons.add_box_outlined),
+  onPressed: (){
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => Text('안녕')),
+    );
+  },
+),
+~~~
+AppBar 아이콘에 onPressed안에 기능개발했습니다. 
+
+이러면 이제 아이콘 누르면 새로운 페이지 뜹니다. 
+
+새로운 페이지에 들어갈 레이아웃은 저기 화살표 오른쪽에 적으면 됩니다.
+
+화살표 뭐냐고 하면 그냥 중괄호와 return을 동시에 생략한 거다. 
+
+함수를 만들 때 (){} 이렇게 만든다. 그런데 {}안에 return이 하나밖에 없으면 생략 가능하다.
+
+상세페이지 디자인은 코드가 길어질 것 같으니 위젯하나 만들어서 Navigator.push()안에 집어 넣으셈
+
+뒤로가기 버튼 만들고 싶으면 Navigator.pop(context) 이거 한 줄 실행하면 된다. 안드로이드폰 하단 빠꾸버튼 눌러도 잘 닫힌다.
+
+### 참고) Route 사용해도 됨
+앱이 여러페이지로 구성되어 있으면 라우터를 사용해서 만들어도 된다.
+어떤 놈이 /home으로 접속하면 Home() 위젯
+
+어떤 놈이 /detail로 접속하면 Detail() 위젯
+
+어떤 놈이 /shop으로 접속하면 Shop() 위젯
+
+이런 식으로 페이지구분기능을 만들 수 있다.
+
+#### 만드는 방법 
+route는 /home, /detail 같은 하나의 uri를 의미한다.
+
+route 하나 만들고 싶으면 
+~~~
+MaterialApp(
+    initialRoute: '/',
+    routes: {
+      '/': (context) => Text('첫페이지'),
+      '/detail': (context) => Text('둘째페이지'),
+    },
+);
+~~~
+MaterialApp 안에 routes: 라는 파라미터 넣으시고
+
+{ '/라우트이름' : 위젯뱉는함수 } 이런 식으로 route들을 넣으면 됩니다. 
+
+initialRoute는 맨 처음 앱 켰을 때 보여줄 route를 적어주면 됩니다.
+
+그럼 정말 이제
+
+/ 페이지로 접속하면 Text('첫페이지')
+
+/detail 페이지로 접속하면 Text('둘째페이지')
+
+위젯들을 보여줍니다. 크롬으로 띄워서 한 번 테스트 해보십시오. 
+
+
+
+- 간단한 Text() 대신 Scaffold() 위젯을 넣어주면 상단바, 하단바도 넣을 수 있겠네요. 
+
+- Scaffold() 넣었는데 코드가 길어지면 언제나 커스텀위젯으로 뺄 수 있습니다.
+
+버튼을 눌렀을 때 페이지이동하게 만들고 싶으면 
+
+Navigator.pushNamed(context, '/detail'); 
+이런 코드 실행하면 유저를 /detail 페이지로 보낼 수 있습니다.
+
+실은 페이지 이동보다는 그냥 /detail 페이지로 덮어줍니다. 
+
+(진짜 참고) Route에 파라미터를 입력하고 싶은 경우
+
+그니까 가끔가다가 /detail/1 이렇게 입력하면 1번 게시물을 보여주고 
+
+/detail/2 이렇게 입력하면 2번 게시물을 보여주는
+
+그런 앱을 만들고 싶다면 onGenerateRoute 라는 파라미터를 써야하는데
+~~~
+MaterialApp(
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        var arguments = settings.arguments;
+        if (settings.name == '/detail') {
+          return MaterialPageRoute(builder: (context) => Upload(routeparam : arguments) );
+        } else if (settings.name == '/') {
+          return MaterialPageRoute(builder: (context) => Text('홈페이지') );
+        } else {
+          return null;
+        }
+      },
+);
+~~~
+/detail/1 로 이동하면 routeparam이라는 파라미터가 1로 변하고
+
+/detail/2 로 이동하면 routeparam이라는 파라미터가 2로 변합니다. 
+
+그리고 routeparam의 값은 Upload() 위젯 안에서 등록하고 사용가능합니다. 
+
+굳이 따라 쓸 필요는 없고 이런게 있다고만 알고 지나가면 되겠습니다.
+
+ 
+
+실은 각각 다른 정보를 위젯 안으로 보내고 싶으면 굳이 라우터 + 파라미터 기능으로 구현할 필요 없습니다.
+
+예전에 했던 state를 자식 위젯으로 보내는거 그거 써도 될듯요 
+
+근데 왜 가르쳤냐고요?
+
+코드양이 많으면 고급기술 많이 배운것 같은 느낌들어서 아조씨들이 좋아하기 때문입니다 
+
+2. 라우터는 페이지가 많을 때 관리하기 편하려고 쓰는 것일 뿐입니다. 지금은 필요없겠군요 
+
+3. 라우터를 본격적으로 써야한다면 패키지 설치해서 쓰는게 낫습니다.
+
+VRouter 이런거 찾아 설치해서 쓰면 Vue, React 라우터처럼 직관적이고 깔끔한 문법으로 페이지 나누기 가능합니다.
+
+구글이 만든 소프트웨어들은 기본 사용법이 언제나 거지같아서 외부 패키지 설치하는게 낫습니다. 
+
+----
+To_do : image_picker 내용 추가, shared preferences, GestureDetector& 페이지 전환 애니메이션 provider와 GET 요청 GridView, CustomScrollView 내용 추가
+
+ 
+
